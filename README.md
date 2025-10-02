@@ -16,7 +16,12 @@ yarn add milimg
 Or use CDN
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/milimg/lib/index.js"></script>
+<script type="module">
+  import {
+    decodeMilimg,
+    encodeMilimg
+  } from 'https://cdn.jsdelivr.net/npm/milimg/lib/index.js';
+</script>
 ```
 
 ## Quick Start
