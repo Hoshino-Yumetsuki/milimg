@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Milimg 编码/解码测试</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 30px;
+        }
+
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: #f8f9ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #764ba2;
+            background: #f0f2ff;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .upload-text {
+            color: #666;
+            font-size: 16px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .result-area {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .result-area.show {
+            display: block;
+        }
+
+        .image-container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .image-box {
+            flex: 1;
+            min-width: 300px;
+            background: #f5f5f5;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .image-box h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .image-box img {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            background: repeating-conic-gradient(#ddd 0% 25%, transparent 0% 50%) 50% / 20px 20px;
+        }
+
+        .info {
+            margin-top: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .info-item {
+            margin: 5px 0;
+        }
+
+        .info-item strong {
+            color: #333;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: transform 0.2s;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .download-btn:active {
+            transform: translateY(0);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px 24px;
+            background: #f5f5f5;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .quality-control {
+            margin-bottom: 20px;
+        }
+
+        .quality-control label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .quality-slider {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .quality-value {
+            color: #667eea;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🎨 Milimg 编码/解码测试</h1>
+        <p class="subtitle">支持图像编码为 milimg 格式,以及解码为 PNG 格式</p>
+
+        <div class="tabs">
+            <button class="tab active" data-tab="encode">📦 编码</button>
+            <button class="tab" data-tab="decode">🔓 解码</button>
+        </div>
+
+        <!-- 编码标签页 -->
+        <div class="tab-content active" id="encode-tab">
+            <div class="quality-control">
+                <label>
+                    编码质量 (CRF): <span class="quality-value" id="qualityValue">0</span>
+                    <small style="color: #999;">(0-63, 数值越低质量越高)</small>
+                </label>
+                <input type="range" class="quality-slider" id="qualitySlider" min="0" max="63" value="0">
+            </div>
+
+            <div class="upload-area" id="encodeUploadArea">
+                <div class="upload-icon">🖼️</div>
+                <div class="upload-text">点击或拖拽图像文件到这里</div>
+                <input type="file" id="encodeFileInput">
+            </div>
+        </div>
+
+        <!-- 解码标签页 -->
+        <div class="tab-content" id="decode-tab">
+            <div class="upload-area" id="decodeUploadArea">
+                <div class="upload-icon">📁</div>
+                <div class="upload-text">点击或拖拽 milimg 文件到这里</div>
+                <input type="file" id="decodeFileInput">
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <div>正在解码中...</div>
+        </div>
+
+        <div class="error" id="error"></div>
+
+        <div class="result-area" id="resultArea">
+            <div class="image-container">
+                <div class="image-box">
+                    <h3>解码后的图像</h3>
+                    <img id="resultImage" alt="解码结果">
+                    <div class="info" id="imageInfo"></div>
+                    <button class="download-btn" id="downloadBtn">下载文件</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import {
+            decodeMilimg,
+            encodeMilimg
+        } from './lib/index.js';
+
+        // Tab switching
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabName = tab.dataset.tab;
+
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(tc => tc.classList.remove('active'));
+
+                tab.classList.add('active');
+                document.getElementById(`${tabName}-tab`).classList.add('active');
+            });
+        });
+
+        // Quality slider
+        const qualitySlider = document.getElementById('qualitySlider');
+        const qualityValue = document.getElementById('qualityValue');
+
+        qualitySlider.addEventListener('input', (e) => {
+            qualityValue.textContent = e.target.value;
+        });
+
+        // Encode tab
+        const encodeUploadArea = document.getElementById('encodeUploadArea');
+        const encodeFileInput = document.getElementById('encodeFileInput');
+
+        // Decode tab
+        const decodeUploadArea = document.getElementById('decodeUploadArea');
+        const decodeFileInput = document.getElementById('decodeFileInput');
+
+        const loading = document.getElementById('loading');
+        const error = document.getElementById('error');
+        const resultArea = document.getElementById('resultArea');
+        const resultImage = document.getElementById('resultImage');
+        const imageInfo = document.getElementById('imageInfo');
+        const downloadBtn = document.getElementById('downloadBtn');
+
+        let resultBlob = null;
+
+        // Encode: 点击上传区域
+        encodeUploadArea.addEventListener('click', () => {
+            encodeFileInput.click();
+        });
+
+        encodeFileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                handleEncodeFile(file);
+            }
+        });
+
+        // Encode: 拖拽上传
+        encodeUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            encodeUploadArea.classList.add('dragover');
+        });
+
+        encodeUploadArea.addEventListener('dragleave', () => {
+            encodeUploadArea.classList.remove('dragover');
+        });
+
+        encodeUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            encodeUploadArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file) {
+                handleEncodeFile(file);
+            }
+        });
+
+        // Decode: 点击上传区域
+        decodeUploadArea.addEventListener('click', () => {
+            decodeFileInput.click();
+        });
+
+        decodeFileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                handleDecodeFile(file);
+            }
+        });
+
+        // Decode: 拖拽上传
+        decodeUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            decodeUploadArea.classList.add('dragover');
+        });
+
+        decodeUploadArea.addEventListener('dragleave', () => {
+            decodeUploadArea.classList.remove('dragover');
+        });
+
+        decodeUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            decodeUploadArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file) {
+                handleDecodeFile(file);
+            }
+        });
+
+        // 处理编码文件
+        async function handleEncodeFile(file) {
+            try {
+                loading.classList.add('show');
+                error.classList.remove('show');
+                resultArea.classList.remove('show');
+
+                const arrayBuffer = await file.arrayBuffer();
+                const buffer = Buffer.from(arrayBuffer);
+                const quality = parseInt(qualitySlider.value);
+
+                const startTime = performance.now();
+                const milimgBuffer = await encodeMilimg(buffer, quality);
+                const endTime = performance.now();
+
+                // 创建预览 (解码回 PNG)
+                const pngBuffer = await decodeMilimg(milimgBuffer);
+                
+                // 保存原始文件名用于下载
+                const originalName = file.name.replace(/\.[^.]+$/, '');
+                resultBlob = new Blob([milimgBuffer], {
+                    type: 'application/octet-stream'
+                });
+                resultBlob.fileName = `${originalName}.milimg`;
+                
+                const previewUrl = URL.createObjectURL(new Blob([pngBuffer], {
+                    type: 'image/png'
+                }));
+
+                resultImage.src = previewUrl;
+
+                const img = new Image();
+                img.onload = () => {
+                    const compressionRatio = ((1 - milimgBuffer.length / file.size) * 100).toFixed(2);
+                    imageInfo.innerHTML = `
+                        <div class="info-item"><strong>文件名:</strong> ${file.name}</div>
+                        <div class="info-item"><strong>原始大小:</strong> ${formatBytes(file.size)}</div>
+                        <div class="info-item"><strong>Milimg 大小:</strong> ${formatBytes(milimgBuffer.length)}</div>
+                        <div class="info-item"><strong>压缩率:</strong> ${compressionRatio}%</div>
+                        <div class="info-item"><strong>图像尺寸:</strong> ${img.width} × ${img.height}</div>
+                        <div class="info-item"><strong>编码质量:</strong> ${quality}</div>
+                        <div class="info-item"><strong>编码耗时:</strong> ${(endTime - startTime).toFixed(2)} ms</div>
+                    `;
+                };
+                img.src = previewUrl;
+
+                loading.classList.remove('show');
+                resultArea.classList.add('show');
+
+            } catch (err) {
+                loading.classList.remove('show');
+                showError(`编码失败: ${err.message}`);
+                console.error(err);
+            }
+        }
+
+        // 处理解码文件
+        async function handleDecodeFile(file) {
+            try {
+                loading.classList.add('show');
+                error.classList.remove('show');
+                resultArea.classList.remove('show');
+
+                const arrayBuffer = await file.arrayBuffer();
+                const buffer = Buffer.from(arrayBuffer);
+
+                const startTime = performance.now();
+                const pngBuffer = await decodeMilimg(buffer);
+                const endTime = performance.now();
+
+                // 保存原始文件名用于下载
+                const originalName = file.name.replace(/\.[^.]+$/, '');
+                resultBlob = new Blob([pngBuffer], {
+                    type: 'image/png'
+                });
+                resultBlob.fileName = `${originalName}.png`;
+                
+                const url = URL.createObjectURL(resultBlob);
+
+                resultImage.src = url;
+
+                const img = new Image();
+                img.onload = () => {
+                    imageInfo.innerHTML = `
+                        <div class="info-item"><strong>文件名:</strong> ${file.name}</div>
+                        <div class="info-item"><strong>Milimg 大小:</strong> ${formatBytes(file.size)}</div>
+                        <div class="info-item"><strong>PNG 大小:</strong> ${formatBytes(pngBuffer.length)}</div>
+                        <div class="info-item"><strong>图像尺寸:</strong> ${img.width} × ${img.height}</div>
+                        <div class="info-item"><strong>解码耗时:</strong> ${(endTime - startTime).toFixed(2)} ms</div>
+                    `;
+                };
+                img.src = url;
+
+                loading.classList.remove('show');
+                resultArea.classList.add('show');
+
+            } catch (err) {
+                loading.classList.remove('show');
+                showError(`解码失败: ${err.message}`);
+                console.error(err);
+            }
+        }
+
+        // 下载按钮
+        downloadBtn.addEventListener('click', () => {
+            if (resultBlob) {
+                const url = URL.createObjectURL(resultBlob);
+                const a = document.createElement('a');
+                a.href = url;
+
+                // 使用保存的原始文件名
+                a.download = resultBlob.fileName || 'output';
+
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+        });
+
+        // 显示错误
+        function showError(message) {
+            error.textContent = message;
+            error.classList.add('show');
+        }
+
+        // 格式化字节
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+    </script>
+</body>
+
+</html>

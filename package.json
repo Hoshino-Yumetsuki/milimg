@@ -1,0 +1,35 @@
+{
+  "name": "milimg",
+  "description": "",
+  "version": "1.0.0",
+  "main": "lib/index.js",
+  "type": "module",
+  "files": [
+    "lib"
+  ],
+  "scripts": {
+    "build": "rolldown -c rolldown.config.js",
+    "publish": "yarn npm publish",
+    "lint": "biome check && biome lint",
+    "lint-fix": "biome format --write && biome lint --write"
+  },
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/Hoshino-Yumetsuki/milimg",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Hoshino-Yumetsuki/milimg"
+  },
+  "keywords": [
+    "milimg"
+  ],
+  "devDependencies": {
+    "@biomejs/biome": "^2.2.3",
+    "@types/node": "^24.6.2",
+    "rolldown": "1.0.0-beta.35",
+    "rolldown-plugin-dts": "^0.16.1",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "buffer": "^6.0.3"
+  }
+}
