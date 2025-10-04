@@ -106,10 +106,6 @@ console.log(header.width, header.height, header.version);
 - **Version 0**: Image without alpha channel
 - **Version 1**: Image with alpha channel (RGBA)
 
-## License
-
-Apache-2.0
-
 ## Statement
 
 Milimg is a custom image format for rhythm game Milthm, so the copyright of this format belongs to the developer of Milthm. This library is only for personal use and learning.
