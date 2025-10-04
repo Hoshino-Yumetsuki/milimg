@@ -24,12 +24,8 @@ tsconfig.tsbuildinfo
 *.test.js
 *.test.jsx
 
-# use yakumo!!!
-yarn.lock
-package-lock.json
 .pnp.js
 
-kumoya
 .VSCodeCounter
 
 # Added by cargo
